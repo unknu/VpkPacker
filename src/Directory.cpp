@@ -8,6 +8,7 @@
 #include <psp2/io/dirent.h>
 
 #include "Directory.h"
+#include "Error.h"
 
 using namespace std;
 
@@ -30,6 +31,8 @@ namespace VpkPacker {
 	}
 	void Directory::Draw()
 	{
+		if( Error::Code != Error::NoneError ) return;
+
 		bool bRoot = IsRoot();
 
 		int y = BaseY;
@@ -190,6 +193,33 @@ namespace VpkPacker {
 		sceIoDclose( dfd );
 
 		return bEbootNotFound;
+	}
+
+	int Directory::RemoveDirectory( string TargetDir )
+	{
+		SceUID dfd = sceIoDopen( TargetDir.c_str() );
+		if( dfd < 0 ) {
+			return 1;
+		}
+
+		int res = 0;
+		SceIoDirent dir;
+		memset( &dir, 0, sizeof( SceIoDirent ) );
+		do {
+			res = sceIoDread( dfd, &dir );
+			if( res <= 0 ) continue;
+
+			string FindPath = TargetDir + dir.d_name;
+			if( SCE_S_ISDIR( dir.d_stat.st_mode ) ) {
+				FindPath += '/';
+				if( RemoveDirectory( FindPath ) ) return 1;
+			} else if( sceIoRemove( FindPath.c_str() ) < 0 ) return 1;
+		} while( res > 0 );
+
+		sceIoDclose( dfd );
+		if( sceIoRmdir( TargetDir.c_str() ) < 0 ) return 1;
+
+		return 0;
 	}
 
 }

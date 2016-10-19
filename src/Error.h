@@ -28,6 +28,8 @@ namespace VpkPacker {
 			FailedZipWriteFile,
 
 			FailedZipRenameDestFile,
+
+			FailedRemoveSrcFile,
 		};
 
 		static int Code;
@@ -37,7 +39,11 @@ namespace VpkPacker {
 
 		static void SetLog( string log );
 		static void SetLog( int i );
+		static void SetLog( unsigned int ui );
 		static void SetLog( void * vp );
+
+		static void Dump( char *p, int len );
+		static void Dump( void *p );
 	};
 
 }

@@ -22,6 +22,8 @@ namespace VpkPacker {
 		"vpkへのデータ書き込みに失敗したよ！",
 
 		"vpkファイルのリネームに失敗したよ！",
+
+		"作成元のフォルダの削除に失敗したよ！",
 	};
 	int Error::Code = 0;
 
@@ -49,11 +51,40 @@ namespace VpkPacker {
 		sout << i;
 		SetLog( sout.str() );
 	}
+	void Error::SetLog( unsigned int ui )
+	{
+		ostringstream sout;
+		sout << ui;
+		SetLog( sout.str() );
+	}
 	void Error::SetLog( void * vp )
 	{
 		ostringstream sout;
 		sout << vp;
 		SetLog( sout.str() );
+	}
+
+
+	void Error::Dump( char *p, int len )
+	{
+		SceUID fd = sceIoOpen( "ux0:vpkpacker_log.txt", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_APPEND, 0777 );
+		if( fd >= 0 ) {
+			char *buf = new char[len];
+			for( int i = 0; i < len; ++i ) {
+				buf[i] = *(p + i);
+			}
+			sceIoWrite( fd, buf, len * sizeof( char ) );
+			sceIoClose( fd );
+			delete[] buf;
+		}
+	}
+	void Error::Dump( void *p )
+	{
+		SceUID fd = sceIoOpen( "ux0:vpkpacker_log.txt", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_APPEND, 0777 );
+		if( fd >= 0 ) {
+			sceIoWrite( fd, (void *)p, sizeof( void * ) );
+			sceIoClose( fd );
+		}
 	}
 
 }

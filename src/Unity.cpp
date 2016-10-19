@@ -19,14 +19,13 @@ namespace VpkPacker {
 	}
 	bool Unity::CheckDraw()
 	{
-		bool bRet = Pad::Update();
+		bool bPadUpdate = Pad::Update();
+
 		if( ( ! Error::Code ) && IsCompressing() ) {
 			Compressing();
-			bRet = true;
 			if( GetSuccess() ) IncOperationCode();
+			if( ! bPadUpdate ) return true;
 		}
-
-		if( ! bRet ) return bRet;
 
 		if( Error::Code ) {
 			switch( GetCurrentButton() ) {
@@ -116,7 +115,15 @@ namespace VpkPacker {
 			}
 		}
 
-		return bRet;
+		if( ! IsCompressing() ) {
+			switch( GetCurrentButton() ) {
+			case SCE_CTRL_SELECT:
+				SetFileRemove( GetFileRemove() ^ true );
+				break;
+			}
+		}
+
+		return bPadUpdate;
 	}
 
 	void Unity::ResetOperation()

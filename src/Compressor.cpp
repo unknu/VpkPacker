@@ -6,7 +6,10 @@
 #include <psp2/io/stat.h>
 #include <psp2/io/dirent.h>
 
+#include <psp2/kernel/threadmgr.h>
+
 #include "Compressor.h"
+#include "Directory.h"
 
 #include "minizip/sceIoapi.h"
 
@@ -15,7 +18,8 @@ namespace VpkPacker {
 
 	Compressor::Compressor() : Level( 0 ), SrcPath( "" ), DestPath( "" ), DestFilePath( "" ), TotalPercent( 0 ), CurPercent( 0 ),
 		FileNum( 0 ), FinishFileNum( 0 ),
-		TotalFileSize( 0 ), TotalWrittenSize( 0 ), CurFileId( -1 ), CurFileSize( 0 ), CurWrittenSize( 0 ), ReadBuf( NULL ), bSuccess( false ),
+		TotalFileSize( 0 ), TotalWrittenSize( 0 ), CurFileId( -1 ), CurFileSize( 0 ), CurWrittenSize( 0 ), ReadBuf( NULL ),
+		bSuccess( false ), bFileRemove( false ), bakThreadPriority( -1 ),
 		z( NULL ), zMethod( 0 )
 	{
 	}
@@ -110,10 +114,23 @@ namespace VpkPacker {
 	{
 		return bSuccess;
 	}
+	bool Compressor::GetFileRemove()
+	{
+		return bFileRemove;
+	}
+	void Compressor::SetFileRemove( bool b )
+	{
+		bFileRemove = b;
+	}
 
 
 	void Compressor::Kill( Error::eCode ec )
 	{
+		if( bakThreadPriority != -1 ) {
+			sceKernelChangeThreadPriority( sceKernelGetThreadId(), bakThreadPriority );
+			bakThreadPriority = -1;
+		}
+
 		if( z ) {
 			zipCloseFileInZip( z );
 			zipClose( z, NULL );
@@ -140,6 +157,9 @@ namespace VpkPacker {
 	}
 	bool Compressor::InitAddFiles()
 	{
+		bakThreadPriority = sceKernelGetThreadCurrentPriority();
+		sceKernelChangeThreadPriority( sceKernelGetThreadId(), 0 );
+
 		Kill( Error::NoneError );
 		SearchFile( "" );
 		CheckFiles();
@@ -275,6 +295,8 @@ namespace VpkPacker {
 			}
 			CurFileId = -1;
 
+			if( bFileRemove ) sceIoRemove( ( SrcPath + vFilePath[FinishFileNum] ).c_str() );
+
 			if( ++ FinishFileNum != FileNum ) {
 				zipCloseFileInZip( z );
 				CurPercent = 0;
@@ -291,6 +313,16 @@ namespace VpkPacker {
 				if( sceIoRename( ( DestFilePath + ".tmp" ).c_str(), ( DestFilePath + ".vpk" ).c_str() ) < 0 ) {
 					Kill( Error::FailedZipRenameDestFile );
 					return true;
+				}
+				if( bFileRemove ) {
+					if( Directory::RemoveDirectory( SrcPath ) ) {
+						Kill( Error::FailedRemoveSrcFile );
+						return true;
+					}
+				}
+				if( bakThreadPriority != -1 ) {
+					sceKernelChangeThreadPriority( sceKernelGetThreadId(), bakThreadPriority );
+					bakThreadPriority = -1;
 				}
 				bSuccess = true;
 			}

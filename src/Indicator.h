@@ -7,7 +7,6 @@
 #include "Compressor.h"
 
 
-
 namespace VpkPacker {
 
 	class Indicator : public Selector, public Compressor {
@@ -21,7 +20,14 @@ namespace VpkPacker {
 		static const unsigned int MainBaseX = 15;
 		static const unsigned int MainBaseY = 15;
 
-		static const unsigned int OperationBaseX = 700;
+		static const unsigned int OperationBaseX = 600;
+		static const unsigned int OperationBaseY = MainBaseY;
+
+		static const unsigned int CompressBaseX = MainBaseX;
+		static const unsigned int CompressBaseY = 200;
+
+		static const unsigned int SettingBaseX = OperationBaseX;
+		static const unsigned int SettingBaseY = 200;
 
 	public:
 		Indicator();

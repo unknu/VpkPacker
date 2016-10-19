@@ -31,6 +31,8 @@ namespace VpkPacker {
 		const SceOff ReadBlockSize = 1024 * 256;
 		char *ReadBuf;
 		bool bSuccess;
+		bool bFileRemove;
+		int bakThreadPriority;
 
 		const vector<string> CompLevel = { "0:無圧縮", "1:最速", "2:", "3:", "4:", "5:", "6:標準", "7:", "8:", "9:最高圧縮", };
 
@@ -63,6 +65,8 @@ namespace VpkPacker {
 		SceOff GetCurWrittenSize();
 		string GetCurFileName();
 		bool GetSuccess();
+		bool GetFileRemove();
+		void SetFileRemove( bool b );
 
 		void Kill( Error::eCode ec );
 		bool InitAddFiles();

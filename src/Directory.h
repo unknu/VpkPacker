@@ -11,7 +11,7 @@ using namespace std;
 
 namespace VpkPacker {
 
-	class Directory : public Selector::Selector {
+	class Directory : public Selector {
 	private:
 		DrawText *pdt;
 		string Path;
@@ -44,6 +44,8 @@ namespace VpkPacker {
 
 		string SelectPath();
 		bool EbootSearch( string path );
+
+		static int RemoveDirectory( string TargetDir );
 	};
 
 }

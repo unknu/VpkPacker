@@ -12,6 +12,7 @@ int main( int argc, char *argv[] )
 	VpkPacker::Unity u;
 	while( 1 ) {
 		if(! u.CheckDraw() ) continue;
+		sceKernelPowerTick( SCE_KERNEL_POWER_TICK_DISABLE_AUTO_SUSPEND );
 
 		vita2d_start_drawing();
 		vita2d_clear_screen();

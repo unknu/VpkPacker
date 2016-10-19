@@ -11,7 +11,7 @@ ASFLAGS := $(CFLAGS)
 LIBS := -lSceSysmodule_stub -lSceCtrl_stub
 LIBS += -lScePgf_stub -lvita2d
 LIBS += -lSceDisplay_stub -lSceGxm_stub
-LIBS += -lSceCommonDialog_stub -lfreetype
+#LIBS += -lSceCommonDialog_stub -lfreetype
 LIBS += -lSceAppUtil_stub
 LIBS += -lz -lm -lc
 
