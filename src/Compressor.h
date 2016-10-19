@@ -26,9 +26,10 @@ namespace VpkPacker {
 		SceOff TotalFileSize;
 		SceOff TotalWrittenSize;
 		SceUID CurFileId;
-		const SceOff WriteSize = 1024 * 256;
 		SceOff CurFileSize;
 		SceOff CurWrittenSize;
+		const SceOff ReadBlockSize = 1024 * 256;
+		char *ReadBuf;
 		bool bSuccess;
 
 		const vector<string> CompLevel = { "0:無圧縮", "1:最速", "2:", "3:", "4:", "5:", "6:標準", "7:", "8:", "9:最高圧縮", };

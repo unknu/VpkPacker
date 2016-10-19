@@ -7,7 +7,7 @@
 
 namespace VpkPacker {
 
-	const char Indicator::Version[] = "ver beta";
+	const char Indicator::Version[] = "ver beta2";
 
 	Indicator::Indicator() : OperationCode( 0 ), IDEnterButton( 0 )
 	{

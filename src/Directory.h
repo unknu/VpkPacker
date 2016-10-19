@@ -43,6 +43,7 @@ namespace VpkPacker {
 		void SortChange( bool bInc );
 
 		string SelectPath();
+		bool EbootSearch( string path );
 	};
 
 }

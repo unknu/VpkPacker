@@ -15,7 +15,7 @@ namespace VpkPacker {
 
 	Compressor::Compressor() : Level( 0 ), SrcPath( "" ), DestPath( "" ), DestFilePath( "" ), TotalPercent( 0 ), CurPercent( 0 ),
 		FileNum( 0 ), FinishFileNum( 0 ),
-		TotalFileSize( 0 ), TotalWrittenSize( 0 ), CurFileId( -1 ), CurFileSize( 0 ), CurWrittenSize( 0 ), bSuccess( false ),
+		TotalFileSize( 0 ), TotalWrittenSize( 0 ), CurFileId( -1 ), CurFileSize( 0 ), CurWrittenSize( 0 ), ReadBuf( NULL ), bSuccess( false ),
 		z( NULL ), zMethod( 0 )
 	{
 	}
@@ -101,7 +101,9 @@ namespace VpkPacker {
 	}
 	string Compressor::GetCurFileName()
 	{
-		return vFilePath[FinishFileNum];
+		int num = FinishFileNum;
+		if( FinishFileNum == FileNum ) -- num;
+		return vFilePath[num];
 	}
 
 	bool Compressor::GetSuccess()
@@ -118,6 +120,11 @@ namespace VpkPacker {
 			z = NULL;
 			sceIoRemove( ( DestFilePath + ".tmp" ).c_str() );
 		}
+		if( ReadBuf ) {
+			delete[] ReadBuf;
+			ReadBuf = NULL;
+		}
+
 		DestFilePath = "";
 		TotalPercent = CurPercent = 0;
 		FileNum = FinishFileNum = 0;
@@ -135,24 +142,19 @@ namespace VpkPacker {
 	{
 		Kill( Error::NoneError );
 		SearchFile( "" );
-		if( CheckFiles() ) {
-			Kill( Error::NoneEbootFile );
-			return true;
-		}
+		CheckFiles();
 		if( FileNum == 0 ) {
 			Kill( Error::NoneSrcFile );
 			return true;
 		}
+		ReadBuf = new char[ReadBlockSize];
 		return false;
 	}
 	bool Compressor::CheckFiles()
 	{
-		bool bEbootNotFound = true;
 		for( int i = vFilePath.size() - 1; i >= 0; -- i ) {
 			string s = vFilePath[i];
-			if( s.find( "eboot.bin" ) == 0 ) {
-				bEbootNotFound = false;
-			} else if( s.find( "sce_pfs/" ) == 0 ||
+			if( s.find( "sce_pfs/" ) == 0 ||
 				s.find( "sce_sys/package/" ) == 0 ||
 				s.find( "sce_sys/clearsign" ) == 0 ||
 				s.find( "sce_sys/keystone" ) == 0 
@@ -167,7 +169,7 @@ namespace VpkPacker {
 				vFilePath.erase( vFilePath.begin() + i );
 			}
 		}
-		return bEbootNotFound;
+		return false;
 	}
 	void Compressor::SearchFile( string TargetPath )
 	{
@@ -249,22 +251,18 @@ namespace VpkPacker {
 	{
 		SceOff ws = CurFileSize - CurWrittenSize;
 		if( ws ) {
-			if( ws > WriteSize ) ws = WriteSize;
+			if( ws > ReadBlockSize ) ws = ReadBlockSize;
 
-			char *buf = new char[ws];
-			int BytesOfRead = sceIoRead( CurFileId, buf, ws );
+			int BytesOfRead = sceIoRead( CurFileId, ReadBuf, ws );
 			if( BytesOfRead != ws ) {
-				delete[] buf;
 				Kill( Error::FailedZipSrcReadFile );
 				return true;
 			}
 
-			if( zipWriteInFileInZip( z, buf, ws ) != ZIP_OK ) {
-				delete[] buf;
+			if( zipWriteInFileInZip( z, ReadBuf, ws ) != ZIP_OK ) {
 				Kill( Error::FailedZipWriteFile );
 				return true;
 			}
-			delete [] buf;
 
 			CurWrittenSize += ws;
 			CurPercent = (float)CurWrittenSize / (float)CurFileSize * 100;
@@ -277,14 +275,18 @@ namespace VpkPacker {
 			}
 			CurFileId = -1;
 
-			if( FinishFileNum + 1 != FileNum ) {
-				++ FinishFileNum;
+			if( ++ FinishFileNum != FileNum ) {
 				zipCloseFileInZip( z );
 				CurPercent = 0;
 				AddFile();
 			} else {
 				zipClose( z, NULL );
 				z = NULL;
+				if( ReadBuf ) {
+					delete[] ReadBuf;
+					ReadBuf = NULL;
+				}
+
 				sceIoRemove( ( DestFilePath + ".vpk" ).c_str() );
 				if( sceIoRename( ( DestFilePath + ".tmp" ).c_str(), ( DestFilePath + ".vpk" ).c_str() ) < 0 ) {
 					Kill( Error::FailedZipRenameDestFile );

@@ -165,4 +165,31 @@ namespace VpkPacker {
 		return RetPath;
 	}
 
+	bool Directory::EbootSearch( string path )
+	{
+		SceUID dfd = sceIoDopen( path.c_str() );
+		if( dfd < 0 ) return true;
+
+		bool bEbootNotFound = true;
+		int res = 0;
+		SceIoDirent dir;
+		memset( &dir, 0, sizeof( SceIoDirent ) );
+		do {
+			res = sceIoDread( dfd, &dir );
+			if( res <= 0 ) continue;
+
+			if( ! SCE_S_ISDIR( dir.d_stat.st_mode ) ) {
+				string s = dir.d_name;
+				if( s.find( "eboot.bin" ) == 0 ) {
+					bEbootNotFound = false;
+					break;
+				}
+			}
+		} while( res > 0 );
+
+		sceIoDclose( dfd );
+
+		return bEbootNotFound;
+	}
+
 }

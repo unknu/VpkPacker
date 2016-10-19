@@ -59,8 +59,13 @@ namespace VpkPacker {
 				break;
 			case SCE_CTRL_SQUARE:
 				if( GetOperationCode() == 0 ) {
+					string path = SelectPath();
+					if( EbootSearch( path ) ) {
+						Kill( Error::NoneEbootFile );
+						break;
+					}
 					IncOperationCode();
-					SetSrcPath( SelectPath() );
+					SetSrcPath( path );
 					SetPath( DefaultDestPath );
 				} else {
 					IncOperationCode();
