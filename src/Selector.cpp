@@ -39,6 +39,11 @@ namespace VpkPacker {
 		MaxPos = mp;
 	}
 
+	vector<int> Selector::GetRecentPos()
+	{
+		return RecentPos;
+	}
+
 	void Selector::CheckPopRecentPos()
 	{
 		if( RecentPos.size() ) {

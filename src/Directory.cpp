@@ -9,6 +9,7 @@
 
 #include "Directory.h"
 #include "Error.h"
+#include "Ini.h"
 
 using namespace std;
 
@@ -165,6 +166,9 @@ namespace VpkPacker {
 	{
 		string RetPath = Path;
 		if( vFolders[GetPos()] != ".." ) RetPath += vFolders[GetPos()];
+
+		Ini::SetSrcPath( RetPath, GetRecentPos() );
+
 		return RetPath;
 	}
 

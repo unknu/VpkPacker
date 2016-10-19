@@ -30,6 +30,7 @@ namespace VpkPacker {
 		if( Error::Code ) {
 			switch( GetCurrentButton() ) {
 			case SCE_CTRL_CROSS:
+			case SCE_CTRL_CIRCLE:
 				ResetOperation();
 				break;
 			}
@@ -47,16 +48,16 @@ namespace VpkPacker {
 			case SCE_CTRL_RTRIGGER:
 				Directory::PosPageDown();
 				break;
-			case SCE_CTRL_CIRCLE:
+			case SCE_CTRL_RIGHT:
 				Enter();
 				break;
-			case SCE_CTRL_CROSS:
+			case SCE_CTRL_LEFT:
 				Leave();
 				break;
 			case SCE_CTRL_TRIANGLE:
 				SortChange( true );
 				break;
-			case SCE_CTRL_SQUARE:
+			case SCE_CTRL_CIRCLE:
 				if( GetOperationCode() == 0 ) {
 					string path = SelectPath();
 					if( EbootSearch( path ) ) {
@@ -71,6 +72,7 @@ namespace VpkPacker {
 					SetDestPath( SelectPath() );
 				}
 				break;
+			case SCE_CTRL_CROSS:
 			case SCE_CTRL_START:
 				ResetOperation();
 				break;
@@ -101,6 +103,7 @@ namespace VpkPacker {
 			}
 		} else if( IsCompressing() ) {
 			switch( GetCurrentButton() ) {
+			case SCE_CTRL_CROSS:
 			case SCE_CTRL_START:
 				Kill( Error::NoneError );
 				ResetOperation();

@@ -15,6 +15,53 @@ namespace VpkPacker {
 		int OperationCode;
 		int IDEnterButton;
 
+		static string Strings[];
+		enum eString {
+			FoundError,
+
+			SelectSourceFolder,
+			IsSourceFolder,
+			SelectDestinationFolder,
+			IsDestinationFolder,
+
+			SelectCompressLevel,
+			IsCompressLevel,
+
+			CreatingVpk,
+			TotalProgressPercentage,
+			FileNumber,
+			FinishFileNumber,
+			FilesSize,
+			FinishFilesSize,
+			CurrentFileName,
+			CurrentProgressPercentage,
+			CompletedCreationVpk,
+
+			OperationMethod,
+
+			OpeErrorCancel,
+
+			OpeCompressCancel,
+			OpeChangeDeleteFile,
+
+			OpeDirectory_1,
+			OpeDirectory_2,
+			OpeDirectory_3,
+			OpeDirectory_4,
+
+			OpeCompressLevel_1,
+			OpeCompressLevel_2,
+			OpeCompressLevel_3,
+
+			OpeCompletedCreationVpk,
+
+			CurrentSetting,
+			SetCompressAndDelete_1,
+			SetCompressAndDelete_2,
+			SetCompressAndDelete_3,
+			SetCompressAndDelete_4,
+		};
+
 		static const char Version[];
 
 		static const unsigned int MainBaseX = 15;

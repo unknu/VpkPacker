@@ -7,7 +7,52 @@
 
 namespace VpkPacker {
 
-	const char Indicator::Version[] = "ver beta3";
+	const char Indicator::Version[] = "ver beta4";
+
+	string Indicator::Strings[] = {
+		"エラー",
+
+		"作成元フォルダ選択",
+		"作成元フォルダ",
+		"作成先フォルダ選択",
+		"作成先フォルダ",
+
+		"圧縮方式選択",
+		"圧縮方式",
+
+		"vpk作成中...",
+		"全体進行度",
+		"ファイル中",
+		"ファイル完了",
+		"バイト中",
+		"バイト完了",
+		"現在処理ファイル",
+		"現在進行度",
+		"vpk作成完了",
+
+		"操作方法",
+		"○×：キャンセル",
+
+		"×：キャンセル",
+		"SELECT：ファイル削除切替",
+
+		"↑↓←→ＬＲ：移動",
+		"△：ソート",
+		"○：選択",
+		"×：キャンセル",
+
+		"↑↓ＬＲ：移動",
+		"×：選択　○：キャンセル",
+		"○：選択　×：キャンセル",
+
+		"○×：完了",
+
+		"現在設定",
+		"圧縮時に逐次ファイル削除：",
+		"○",
+		"×",
+		"(エラーやキャンセルで元に戻せない)",
+	};
 
 	Indicator::Indicator() : OperationCode( 0 ), IDEnterButton( 0 )
 	{
@@ -51,150 +96,58 @@ namespace VpkPacker {
 
 	void Indicator::Draw()
 	{
-		/*
-		int y = MainBaseY;
-		y = pdt->DrawLF( MainBaseX, y, name.c_str() );
-		y = pdt->LF( y );
-		*/
 		string MainString = ( string )"VpkPacker " + Version + "\n\n";
 
 		if( Error::Code ) {
-			/*
-			y = pdt->DrawLF( MainBaseX, y, "エラーだよ！" );
-			y = pdt->LF( y );
-			y = pdt->DrawLF( MainBaseX, y, Error::GetString().c_str() );
-			*/
-			MainString += "エラーだよ！\n\n" + Error::GetString() + "\n";
+			MainString += Strings[FoundError] + "\n\n" + Error::GetString() + "\n";
 		} else if( OperationCode == 0 ) {
-//			y = pdt->DrawLF( MainBaseX, y, "vpkの作成元フォルダを選択してね！" );
-			MainString += "vpkの作成元フォルダを選択してね！\n";
+			MainString += Strings[SelectSourceFolder] + "\n";
 		} else if( OperationCode > 0 ) {
-			/*
-			y = pdt->DrawLF( MainBaseX, y, "vpkの作成元フォルダだよ！" );
-			y = pdt->DrawLF( MainBaseX, y, GetSrcPath().c_str() );
-			y = pdt->LF( y );
-			*/
-			MainString += "vpkの作成元フォルダだよ！\n" + GetSrcPath() + "\n\n";
+			MainString += Strings[IsSourceFolder] + "\n" + GetSrcPath() + "\n\n";
 			if( OperationCode == 1 ) {
-//				y = pdt->DrawLF( MainBaseX, y, "vpkの作成先フォルダを選択してね！" );
-				MainString += "vpkの作成先フォルダを選択してね！\n";
+				MainString += Strings[SelectDestinationFolder] + "\n";
 			} else if( OperationCode >= 2 ) {
-				/*
-				y = pdt->DrawLF( MainBaseX, y, "vpkの作成先フォルダだよ！" );
-				y = pdt->DrawLF( MainBaseX, y, GetDestPath().c_str() );
-				y = pdt->LF( y );
-				*/
-				MainString += "vpkの作成先フォルダだよ！\n" + GetDestPath() + "\n\n";
+				MainString += Strings[IsDestinationFolder] + "\n" + GetDestPath() + "\n\n";
 			}
 			if( OperationCode == 2 ) {
-				/*
-				y = pdt->DrawLF( MainBaseX, y, "vpkの圧縮方式を選択してね！" );
-				y = pdt->LF( y );
-				y = pdt->LF( y );
-				*/
-				MainString += "vpkの圧縮方式を選択してね！\n\n\n";
+				MainString += Strings[SelectCompressLevel] + "\n\n\n";
 			} else if( OperationCode >= 3 ) {
-				/*
-				y = pdt->DrawLF( MainBaseX, y, "vpkの圧縮方式だよ！" );
-				y = pdt->DrawLF( MainBaseX, y, GetCurModeString().c_str() );
-				y = pdt->LF( y );
-				*/
-				MainString += "vpkの圧縮方式だよ！\n" + GetCurModeString() + "\n\n";
+				MainString += Strings[IsCompressLevel] + "\n" + GetCurModeString() + "\n\n";
 			}
 			if( IsCompressing() ) {
-				/*
-				y = pdt->DrawLF( MainBaseX, y, "vpkの作成中だよ！ちょっと待っててね！" );
-				y = pdt->LF( y );
-				*/
-				MainString += "vpkの作成中だよ！ちょっと待っててね！\n\n";
+				MainString += Strings[CreatingVpk] + "\n\n";
 			}
 			if( IsCompressing() || IsCompressSuccess() ) {
-				/*
 				ostringstream sout;
-				sout << "全体進行度: " << GetTotalPercent() << " %";
-				y = pdt->DrawLF( MainBaseX, y, sout.str().c_str() );
-				ostringstream sout2;
-				sout2 << GetFileNum() << " ファイル中 " << GetFinishFileNum() << " ファイル完了";
-				y = pdt->DrawLF( MainBaseX, y, sout2.str().c_str() );
-				ostringstream sout3;
-				sout3 << GetTotalFileSize() << " バイト中 " << GetTotalWrittenSize() << " バイト完了";
-				y = pdt->DrawLF( MainBaseX, y, sout3.str().c_str() );
-				y = pdt->LF( y );
-				ostringstream sout4;
-				sout4 << "現在処理ファイル: " << GetCurFileName();
-				y = pdt->DrawLF( MainBaseX, y, sout4.str().c_str() );
-				ostringstream sout5;
-				sout5 << "現在進行度: " << GetCurPercent() << " %";
-				y = pdt->DrawLF( MainBaseX, y, sout5.str().c_str() );
-				ostringstream sout6;
-				sout6 << GetCurFileSize() << " バイト中 " << GetCurWrittenSize() << " バイト完了";
-				y = pdt->DrawLF( MainBaseX, y, sout6.str().c_str() );
-				*/
-				ostringstream sout;
-				sout << "全体進行度: " << GetTotalPercent() << " %" << endl
-					 << GetFileNum() << " ファイル中 " << GetFinishFileNum() << " ファイル完了" << endl
-					 << GetTotalFileSize() << " バイト中 " << GetTotalWrittenSize() << " バイト完了" << endl << endl
-					 << "現在処理ファイル: " << GetCurFileName() << endl
-					 << "現在進行度: " << GetCurPercent() << " %" << endl
-					 << GetCurFileSize() << " バイト中 " << GetCurWrittenSize() << " バイト完了" << endl
-					;
+				sout << Strings[TotalProgressPercentage] << ": " << GetTotalPercent() << " %" << endl
+					<< GetFileNum() << " " << Strings[FileNumber] << " " << GetFinishFileNum() << " " << Strings[FinishFileNumber] << endl
+					<< GetTotalFileSize() << " " << Strings[FilesSize] << " " << GetTotalWrittenSize() << " " << Strings[FinishFilesSize] << endl << endl
+					<< Strings[CurrentFileName] << ": " << GetCurFileName() << endl
+					<< Strings[CurrentProgressPercentage] << ": " << GetCurPercent() << " %" << endl
+					<< GetCurFileSize() << " " << Strings[FilesSize] << " " << GetCurWrittenSize() << " " << Strings[FinishFilesSize] << endl;
 				MainString += sout.str();
 			}
 			if( IsCompressSuccess() ) {
-				/*
-				y = pdt->LF( y );
-				y = pdt->LF( y );
-				y = pdt->DrawLF( MainBaseX, y, "vpk作成完了だよ！やったね！" );
-				*/
-				MainString += "\n\nvpk作成完了だよ！やったね！\n";
+				MainString += "\n\n" + Strings[CompletedCreationVpk] + "\n";
 			}
 		}
 		pdt->Draw( MainBaseX, MainBaseY, MainString.c_str() );
 
-		/*
-		int oy = MainBaseY;
-		oy = pdt->DrawLF( OperationBaseX, oy, "操作方法だよ！" );
-		oy = pdt->LF( oy );
-		*/
-		string OperationString = "操作方法だよ！\n\n";
+		string OperationString = Strings[OperationMethod] + "\n\n";
 
 		if( Error::Code ) {
-			/*
-			string s = "×：キャンセル";
-			if( IDEnterButton ) {
-				s = "○：キャンセル";
-			}
-			oy = pdt->DrawLF( OperationBaseX, oy, s.c_str() );
-			*/
-			OperationString += IDEnterButton ? "○：キャンセル\n" : "×：キャンセル\n";
+			OperationString += Strings[OpeErrorCancel] + "\n";
 		} else if( IsCompressing() ) {
-//			oy = pdt->DrawLF( OperationBaseX, oy, "START：キャンセル" );
-			OperationString += "START：キャンセル\n";
+			OperationString += Strings[OpeCompressCancel] + "\n";
 		} else {
-			/*
-			oy = pdt->DrawLF( OperationBaseX, oy, "SELECT：ファイル削除切替" );
-			oy = pdt->LF( oy );
-			*/
-			OperationString += "SELECT：ファイル削除切替\n\n";
+			OperationString += Strings[OpeChangeDeleteFile] + "\n\n";
 
 			if( OperationCode < 2 ) {
-				/*
-				oy = pdt->DrawLF( OperationBaseX, oy, "↓↑○×ＬＲ：移動" );
-				oy = pdt->DrawLF( OperationBaseX, oy, "△：ソート　□：選択" );
-				oy = pdt->DrawLF( OperationBaseX, oy, "START：選択解除" );
-				*/
-				OperationString += "↓↑○×ＬＲ：移動\n△：ソート　□：選択\nSTART：選択解除\n";
+				OperationString += Strings[OpeDirectory_1] + "\n" + Strings[OpeDirectory_2] + "　"
+					+ Strings[OpeDirectory_3] + "\n" + Strings[OpeDirectory_4] + "\n";
 			} else if( OperationCode == 2 ) {
-				/*
-				oy = pdt->DrawLF( OperationBaseX, oy, "↓↑ＬＲ：移動" );
-				string s = "○：選択　×：キャンセル";
-				if( IDEnterButton ) {
-					s = "×：選択　○：キャンセル";
-				}
-				oy = pdt->DrawLF( OperationBaseX, oy, s.c_str() );
-				*/
-				OperationString += "↓↑ＬＲ：移動\n";
-				OperationString += IDEnterButton ? "×：選択　○：キャンセル\n" : "○：選択　×：キャンセル\n";
+				OperationString += Strings[OpeCompressLevel_1] + "\n";
+				OperationString += IDEnterButton ? Strings[OpeCompressLevel_2] + "\n" : Strings[OpeCompressLevel_3] + "\n";
 
 				int y = CompressBaseY;
 				for( int i = 0; i < GetLevelStringVectorSize(); ++ i ) {
@@ -202,15 +155,15 @@ namespace VpkPacker {
 					else y = pdt->DrawLF( MainBaseX, y, RGBA_GREEN, GetModeString( i ).c_str() );
 				}
 			} else if( IsCompressSuccess() ) {
-//				oy = pdt->DrawLF( OperationBaseX, oy, "○×：完了" );
-				OperationString += "○×：完了\n";
+				OperationString += Strings[OpeCompletedCreationVpk] + "\n";
 			}
 		}
 		pdt->Draw( OperationBaseX, OperationBaseY, OperationString.c_str() );
 
-		string SettingString = "現在設定だよ！\n\n圧縮時に逐次ファイル削除：";
-		SettingString += GetFileRemove() ? "○" : "×";
-		SettingString += "\n(エラーやキャンセルで元に戻せない)";
+		string SettingString = Strings[CurrentSetting] + "\n\n";
+		SettingString += Strings[SetCompressAndDelete_1];
+		SettingString += GetFileRemove() ? Strings[SetCompressAndDelete_2] : Strings[SetCompressAndDelete_3];
+		SettingString += "\n" + Strings[SetCompressAndDelete_4];
 		pdt->Draw( SettingBaseX, SettingBaseY, SettingString.c_str() );
 	}
 

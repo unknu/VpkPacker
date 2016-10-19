@@ -28,6 +28,8 @@ namespace VpkPacker {
 		int GetMaxPos();
 		void SetMaxPos( int mp );
 
+		vector<int> GetRecentPos();
+
 		void CheckPopRecentPos();
 		void PopRecentPos();
 		void PushRecentPos();

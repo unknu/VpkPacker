@@ -34,16 +34,19 @@ namespace VpkPacker {
 			tmp = buf;
 			delete [] buf;
 			for( size_t i = 0; i < kv.size(); ++ i ) {
-				int index = tmp.find( kv[i].key );
-				if( index != -1 ) {
-					int index2 = index = tmp.find( "\r\n", index );
-					tmp = tmp.substr( 0, index ) + tmp.substr( index2 + 2 );
+				int index = tmp.find( kv[i].key ) + 1;
+				if( index != 0 ) {
+					-- index;
+					int index2 = tmp.find_first_of( "\n\0", index );
+					if( index2 != -1 ) {
+						tmp = tmp.substr( 0, index ) + tmp.substr( index2 + 1 );
+					}
 				}
-				tmp.insert( 0, kv[i].key + kv[i].value );
+				tmp.insert( index, kv[i].key + '=' + kv[i].value );
 			}
 		} else {
 			for( size_t i = 0; i < kv.size(); ++ i ) {
-				tmp.insert( 0, kv[i].key + kv[i].value );
+				tmp.insert( 0, kv[i].key + '=' + kv[i].value );
 			}
 		}
 		sceIoClose( fid );
@@ -69,7 +72,7 @@ namespace VpkPacker {
 	void Ini::SetSrcPath( string path, vector<int> rp )
 	{
 		SetPath( "SrcPath", path, rp );
-		}
+	}
 	void Ini::SetDestPath( string path, vector<int> rp )
 	{
 		SetPath( "DestPath", path, rp );

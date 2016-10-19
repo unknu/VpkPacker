@@ -20,7 +20,7 @@ RESOURCE += --add sce_sys/icon0.png=sce_sys/icon0.png
 RESOURCE += --add sce_sys/livearea/contents/bg0.png=sce_sys/livearea/contents/bg0.png
 RESOURCE += --add sce_sys/livearea/contents/startup.png=sce_sys/livearea/contents/startup.png
 
-PSVITAIP := 192.168.0.8
+PSVITAIP := 192.168.0.13
 
 PHONY := all package clean
 rwildcard=$(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2) $(filter $(subst *,%,$2),$d))
