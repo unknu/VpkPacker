@@ -2,6 +2,8 @@
 #include "Unity.h"
 #include "Error.h"
 
+#include "Ini.h"
+
 
 namespace VpkPacker {
 
@@ -37,16 +39,16 @@ namespace VpkPacker {
 		} else if( GetOperationCode() < 2 ) {
 			switch( GetCurrentButton() ) {
 			case SCE_CTRL_UP:
-				Directory::PosUp();
+				CurPosUp();
 				break;
 			case SCE_CTRL_DOWN:
-				Directory::PosDown();
+				CurPosDown();
 				break;
 			case SCE_CTRL_LTRIGGER:
-				Directory::PosPageUp();
+				CurPosPageUp();
 				break;
 			case SCE_CTRL_RTRIGGER:
-				Directory::PosPageDown();
+				CurPosPageDown();
 				break;
 			case SCE_CTRL_RIGHT:
 				Enter();
@@ -66,10 +68,12 @@ namespace VpkPacker {
 					}
 					IncOperationCode();
 					SetSrcPath( path );
-					SetPath( DefaultDestPath );
+					SavePath( "Src", GetSrcPath() );
+					ChangeCurPath( 1 );
 				} else {
 					IncOperationCode();
 					SetDestPath( SelectPath() );
+					SavePath( "Dest", GetDestPath() );
 				}
 				break;
 			case SCE_CTRL_CROSS:
@@ -133,19 +137,7 @@ namespace VpkPacker {
 	{
 		ResetOperationCode();
 		Error::ResetCode();
-		string path = GetSrcPath();
-		SetSrcPath( "" );
-		if( path != "" ) {
-			path.erase( path.length() - 1 );
-			size_t index = path.find_last_of( ":/" );
-
-			if( index != string::npos ) {
-				path.erase( index + 1 );
-				SetPath( path );
-			} else {
-				SetRootPath();
-			}			
-		}
+		ChangeCurPath( 0 );
 	}
 
 }

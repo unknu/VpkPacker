@@ -16,6 +16,10 @@ namespace VpkPacker {
 	{
 		return Pos;
 	}
+	void Selector::SetPos( int pos )
+	{
+		Pos = pos;
+	}
 	void Selector::ResetPos()
 	{
 		Pos = 0;
@@ -48,6 +52,7 @@ namespace VpkPacker {
 	{
 		if( RecentPos.size() ) {
 			PopRecentPos();
+			if( Pos > MaxPos ) Pos = MaxPos;
 		} else Pos = 0;
 	}
 	void Selector::PopRecentPos()
@@ -60,6 +65,10 @@ namespace VpkPacker {
 	{
 		RecentPos.push_back( Pos );
 		Pos = 0;
+	}
+	void Selector::PushRecentPos( int pos )
+	{
+		RecentPos.push_back( pos );
 	}
 
 	void Selector::ResetRecentPos()

@@ -3,29 +3,31 @@
 #include <string>
 #include <vector>
 
+#include "Directory.h"
+
 using namespace std;
 
 
 namespace VpkPacker {
+
+	typedef struct {
+		string key;
+		string value;
+	} KeyAndValues;
 
 	class Ini {
 	private:
 		Ini() {}
 		~Ini() {}
 
-		typedef struct {
-			string key;
-			string value;
-		} KeyAndValues;
 
 		static const char IniPath[];
 
-		static void SetKey( vector<KeyAndValues> kv );
+		static SceUID OpenIniFile( const unsigned int flag );
+		static bool ReadIniFileWithClose( const SceUID fid, string *ReadStr );
 	public:
-		static void SetPath( const char *keypath, string path, vector<int> rp );
-		static void SetSrcPath( string path, vector<int> rp );
-		static void SetDestPath( string path, vector<int> rp );
-
+		static bool Get( string SectionName, vector<KeyAndValues> *pkv );
+		static bool Set( string SectionName, const vector<KeyAndValues> kv );
 	};
 
 }

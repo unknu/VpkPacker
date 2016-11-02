@@ -7,7 +7,7 @@
 
 namespace VpkPacker {
 
-	const char Indicator::Version[] = "ver beta4";
+	const char Indicator::Version[] = "ver 1";
 
 	string Indicator::Strings[] = {
 		"エラー",
@@ -37,9 +37,9 @@ namespace VpkPacker {
 		"SELECT：ファイル削除切替",
 
 		"↑↓←→ＬＲ：移動",
+		"×：選択　○：キャンセル",
+		"○：選択　×：キャンセル",
 		"△：ソート",
-		"○：選択",
-		"×：キャンセル",
 
 		"↑↓ＬＲ：移動",
 		"×：選択　○：キャンセル",
@@ -49,8 +49,8 @@ namespace VpkPacker {
 
 		"現在設定",
 		"圧縮時に逐次ファイル削除：",
-		"○",
-		"×",
+		"オン",
+		"オフ",
 		"(エラーやキャンセルで元に戻せない)",
 	};
 
@@ -143,8 +143,9 @@ namespace VpkPacker {
 			OperationString += Strings[OpeChangeDeleteFile] + "\n\n";
 
 			if( OperationCode < 2 ) {
-				OperationString += Strings[OpeDirectory_1] + "\n" + Strings[OpeDirectory_2] + "　"
-					+ Strings[OpeDirectory_3] + "\n" + Strings[OpeDirectory_4] + "\n";
+				OperationString += Strings[OpeDirectory_1] + "\n";
+				OperationString += IDEnterButton ? Strings[OpeDirectory_2] + "\n" : Strings[OpeDirectory_3] + "\n";
+				OperationString += Strings[OpeDirectory_4] + "\n";
 			} else if( OperationCode == 2 ) {
 				OperationString += Strings[OpeCompressLevel_1] + "\n";
 				OperationString += IDEnterButton ? Strings[OpeCompressLevel_2] + "\n" : Strings[OpeCompressLevel_3] + "\n";

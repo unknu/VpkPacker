@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <functional>
+#include <sstream>
 
 #include <psp2/io/fcntl.h>
 #include <psp2/io/stat.h>
@@ -19,8 +20,22 @@ namespace VpkPacker {
 	Directory::Directory() : SortNum( 0 )
 	{
 		pdt = new DrawText();
-		SetMaxEntries( MAX_ENTRIES );
-		SetPath( "ux0:" );
+
+		Src.sel.SetMaxEntries( MAX_ENTRIES );
+		Src.Path = "";
+		Src.sel.ResetPos();
+		Src.sel.ResetRecentPos();
+		LoadPath( "Src", &Src );
+
+		Dest.sel.SetMaxEntries( MAX_ENTRIES );
+		Dest.Path = DefaultDestPath;
+		Dest.sel.ResetPos();
+		Dest.sel.ResetRecentPos();
+		LoadPath( "Dest", &Dest );
+
+		CheckPath( &Src );
+		CheckPath( &Dest );
+		ChangeCurPath( 0 );
 	}
 	Directory::~Directory()
 	{
@@ -28,7 +43,7 @@ namespace VpkPacker {
 
 	bool Directory::IsRoot()
 	{
-		return Path == "";
+		return pCurPathSel->Path == "";
 	}
 	void Directory::Draw()
 	{
@@ -40,20 +55,20 @@ namespace VpkPacker {
 		if( bRoot ) {
 			y = pdt->DrawLF( BaseX, y, "root" );
 		} else {
-			y = pdt->DrawLF( BaseX, y, Path.c_str() );
+			y = pdt->DrawLF( BaseX, y, pCurPathSel->Path.c_str() );
 		}
 		y = pdt->LF( y );
 
 		int PageThreshold = MAX_ENTRIES - 2;
 		int FixNum = 0;
-		if( GetPos() > PageThreshold ) {
-			FixNum = GetPos() - PageThreshold;
-			if( GetPos() == GetMaxPos() ) -- FixNum;
+		if( pCurPathSel->sel.GetPos() > PageThreshold ) {
+			FixNum = pCurPathSel->sel.GetPos() - PageThreshold;
+			if( pCurPathSel->sel.GetPos() == pCurPathSel->sel.GetMaxPos() ) -- FixNum;
 		}
 		for( int i = 0; i < MAX_ENTRIES; ++ i ) {
 			if( (int)vFolders.size() == i ) break;
 			int ArrayNum = i + FixNum;
-			if( ArrayNum != GetPos() ) y = pdt->DrawLF( BaseX, y, vFolders[ArrayNum].c_str() );
+			if( ArrayNum != pCurPathSel->sel.GetPos() ) y = pdt->DrawLF( BaseX, y, vFolders[ArrayNum].c_str() );
 			else y = pdt->DrawLF( BaseX, y, RGBA_GREEN, vFolders[ArrayNum].c_str() );
 		}
 	}
@@ -61,19 +76,22 @@ namespace VpkPacker {
 
 	void Directory::SetRootPath()
 	{
-		Path = "";
+		pCurPathSel->Path = "";
 		vFolders.clear();
 		for( int i = 0; i < MAX_ROOT_DIRECTORIES; ++ i ) {
 			vFolders.push_back( RootDirectories[i] );
 		}
-		SetMaxPos( vFolders.size() - 1 );
+		pCurPathSel->sel.SetMaxPos( vFolders.size() - 1 );
 	}
-	void Directory::SetPath( string path )
+	void Directory::CheckPath( PathAndSelector *ps )
 	{
-		ResetPos();
-		CreatePath( path );
-		Path = path;
-		SearchFolder();
+		SceUID dfd = sceIoDopen( ps->Path.c_str() );
+		if( dfd >= 0 ) {
+			sceIoDclose( dfd );
+		} else {
+			ps->sel.ResetPos();
+			ps->Path = "ux0:";
+		}
 	}
 	void Directory::CreatePath( string path )
 	{
@@ -90,13 +108,13 @@ namespace VpkPacker {
 	}
 	void Directory::Enter()
 	{
-		if( ! ( IsRoot() || GetPos() ) ) {
+		if( ! ( IsRoot() || pCurPathSel->sel.GetPos() ) ) {
 			Leave();
 			return;
 		}
 
-		Path += vFolders[GetPos()];
-		PushRecentPos();
+		pCurPathSel->Path += vFolders[pCurPathSel->sel.GetPos()];
+		pCurPathSel->sel.PushRecentPos();
 
 		SearchFolder();
 	}
@@ -104,24 +122,25 @@ namespace VpkPacker {
 	{
 		if( IsRoot() ) return;
 
-		CheckPopRecentPos();
-
-		Path.erase( Path.length() - 1 );
-		size_t index = Path.find_last_of( ":/" );
+		pCurPathSel->Path.erase( pCurPathSel->Path.length() - 1 );
+		size_t index = pCurPathSel->Path.find_last_of( ":/" );
 		if( index != string::npos ) {
-			Path.erase( index + 1 );
+			pCurPathSel->Path.erase( index + 1 );
 			SearchFolder();
 		} else {
 			SetRootPath();
 		}
+
+		pCurPathSel->sel.CheckPopRecentPos();
 	}
 	int Directory::SearchFolder()
 	{
 		vFolders.clear();
 		vFolders.push_back( ".." );
 
-		SceUID dfd = sceIoDopen( Path.c_str() );
+		SceUID dfd = sceIoDopen( pCurPathSel->Path.c_str() );
 		if( dfd < 0 ) {
+			pCurPathSel->sel.SetMaxPos( 0 );
 			return 1;
 		}
 
@@ -142,7 +161,7 @@ namespace VpkPacker {
 
 		SortChange( false );
 
-		SetMaxPos( vFolders.size() - 1 );
+		pCurPathSel->sel.SetMaxPos( vFolders.size() - 1 );
 
 		return 0;
 	}
@@ -164,12 +183,24 @@ namespace VpkPacker {
 
 	string Directory::SelectPath()
 	{
-		string RetPath = Path;
-		if( vFolders[GetPos()] != ".." ) RetPath += vFolders[GetPos()];
-
-		Ini::SetSrcPath( RetPath, GetRecentPos() );
+		string RetPath = pCurPathSel->Path;
+		if( vFolders[pCurPathSel->sel.GetPos()] != ".." ) RetPath += vFolders[pCurPathSel->sel.GetPos()];
 
 		return RetPath;
+	}
+	void Directory::ChangeCurPath( int sel )
+	{
+		switch( sel ) {
+		default:
+		case 0:
+			pCurPathSel = &Src;
+			break;
+		case 1:
+			pCurPathSel = &Dest;
+			break;
+		}
+		if( IsRoot() ) SetRootPath();
+		else SearchFolder();
 	}
 
 	bool Directory::EbootSearch( string path )
@@ -224,6 +255,68 @@ namespace VpkPacker {
 		if( sceIoRmdir( TargetDir.c_str() ) < 0 ) return 1;
 
 		return 0;
+	}
+
+	void Directory::CurPosUp()
+	{
+		pCurPathSel->sel.PosUp();
+	}
+	void Directory::CurPosPageUp()
+	{
+		pCurPathSel->sel.PosPageUp();
+	}
+	void Directory::CurPosDown()
+	{
+		pCurPathSel->sel.PosDown();
+	}
+	void Directory::CurPosPageDown()
+	{
+		pCurPathSel->sel.PosPageDown();
+	}
+	int Directory::CurGetPos()
+	{
+		return pCurPathSel->sel.GetPos();
+	}
+	vector<int> Directory::CurGetRecentPos()
+	{
+		return pCurPathSel->sel.GetRecentPos();
+	}
+
+	void Directory::SavePath( const char *sec, const string path )
+	{
+		vector<int> rpos = pCurPathSel->sel.GetRecentPos();
+		if( pCurPathSel->sel.GetPos() ) rpos.push_back( pCurPathSel->sel.GetPos() );
+		SavePath( sec, path, rpos );
+	}
+	void Directory::SavePath( const char *sec, const string path, const vector<int> rpos )
+	{
+		ostringstream sout;
+		if( rpos.size() ) {
+			for( size_t i = 0; i < rpos.size(); ++ i ) {
+				sout << rpos[i] << ",";
+			}
+		} else {
+			sout << 0 << ",";
+		}
+
+		vector<KeyAndValues> kv = { { "Path", path },{ "RecentPos", sout.str() } };
+		Ini::Set( sec, kv );
+	}
+
+	void Directory::LoadPath( const char *sec, PathAndSelector *pas )
+	{
+		vector<KeyAndValues> kv = { { "Path" },{ "RecentPos" } };
+		Ini::Get( sec, &kv );
+
+		if( kv[0].value != "" ) pas->Path = kv[0].value;
+
+		stringstream ss( kv[1].value );
+		string buffer;
+		while( getline( ss, buffer, ',' ) ) {
+			int tmp;
+			istringstream( buffer ) >> tmp;
+			pas->sel.PushRecentPos( tmp );
+		}
 	}
 
 }

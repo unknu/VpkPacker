@@ -23,6 +23,7 @@ namespace VpkPacker {
 		void SetMaxEntries( int me );
 
 		int GetPos();
+		void SetPos( int pos );
 		void ResetPos();
 
 		int GetMaxPos();
@@ -33,6 +34,7 @@ namespace VpkPacker {
 		void CheckPopRecentPos();
 		void PopRecentPos();
 		void PushRecentPos();
+		void PushRecentPos( int pos );
 		void ResetRecentPos();
 
 		void PosUp();
