@@ -1,0 +1,8 @@
+VpkPacker by unk
+
+ver 1
+操作方法表示修正、調整
+パス履歴保存(ux0:data/VpkPacker/setting.ini)
+
+ver beta4
+UI変更
